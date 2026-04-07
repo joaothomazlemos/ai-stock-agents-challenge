@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="architecture" name="System Architecture">
-        <mxGraphModel dx="1096" dy="787" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1354" dy="468" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -13,7 +13,7 @@
                 <mxCell id="aws-group" value="&lt;b&gt;AWS Cloud&lt;/b&gt;" style="fontColor=#E0E0E0;rounded=1;html=1;fillColor=none;strokeColor=#999999;strokeWidth=2;dashed=1;verticalAlign=top;fontSize=12;spacingTop=5;" parent="1" vertex="1">
                     <mxGeometry x="200" y="185" width="1000" height="680" as="geometry"/>
                 </mxCell>
-                <mxCell id="apigw" value="&lt;b&gt;API Gateway&lt;/b&gt;&lt;hr&gt;REST API + Cognito Authorizer" style="fontColor=#333333;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;" parent="1" vertex="1">
+                <mxCell id="apigw" value="&lt;b&gt;AgentCore Gateway&lt;/b&gt;&lt;hr&gt;Cognito JWT Authorizer" style="fontColor=#333333;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;" parent="1" vertex="1">
                     <mxGeometry x="580" y="235" width="240" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="cognito" value="&lt;b&gt;AWS Cognito&lt;/b&gt;&lt;hr&gt;User Pool + JWT Tokens" style="fontColor=#333333;rounded=1;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;" parent="1" vertex="1">
@@ -22,7 +22,7 @@
                 <mxCell id="agentcore-group" value="&lt;b&gt;AWS Agentcore Runtime&lt;/b&gt;" style="fontColor=#E0E0E0;rounded=1;html=1;fillColor=none;strokeColor=#6c8ebf;strokeWidth=2;dashed=1;verticalAlign=top;fontSize=11;spacingTop=5;" parent="1" vertex="1">
                     <mxGeometry x="280" y="334" width="840" height="491" as="geometry"/>
                 </mxCell>
-                <mxCell id="fastapi" value="&lt;b&gt;FastAPI Server&lt;/b&gt;&lt;hr&gt;SSE Streaming Endpoint" style="fontColor=#333333;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;" parent="1" vertex="1">
+                <mxCell id="fastapi" value="&lt;b&gt;FastAPI Server&lt;/b&gt;&lt;hr&gt;POST /invocations (SSE) + GET /ping&lt;br&gt;Port 8080 · ARM64" style="fontColor=#333333;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;fontSize=10;" parent="1" vertex="1">
                     <mxGeometry x="580" y="390" width="240" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="langgraph" value="&lt;b&gt;LangGraph ReAct Agent&lt;/b&gt;&lt;hr&gt;.astream() orchestration" style="fontColor=#333333;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;" parent="1" vertex="1">
@@ -40,7 +40,7 @@
                 <mxCell id="kb-group" value="&lt;b&gt;Knowledge Base (RAG)&lt;/b&gt;" style="fontColor=#E0E0E0;rounded=1;html=1;fillColor=none;strokeColor=#9673a6;strokeWidth=1;dashed=1;verticalAlign=top;fontSize=10;spacingTop=5;" parent="1" vertex="1">
                     <mxGeometry x="660" y="610" width="310" height="185" as="geometry"/>
                 </mxCell>
-                <mxCell id="vectorstore" value="&lt;b&gt;Vector Store&lt;/b&gt;&lt;hr&gt;Document Embeddings &amp;amp; Retrieval" style="fontColor=#333333;rounded=1;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;fontSize=10;" parent="1" vertex="1">
+                <mxCell id="vectorstore" value="&lt;b&gt;FAISS Vector Store&lt;/b&gt;&lt;hr&gt;Pre-built index (in-memory) · Titan Embeddings 512d" style="fontColor=#333333;rounded=1;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;fontSize=10;" parent="1" vertex="1">
                     <mxGeometry x="685" y="650" width="260" height="45" as="geometry"/>
                 </mxCell>
                 <mxCell id="fin-docs" value="&lt;b&gt;Amazon Financial Documents&lt;/b&gt;&lt;br&gt;Annual Report 2024 + Q2/Q3 2025 Earnings" style="fontColor=#333333;rounded=1;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=center;fontSize=9;" parent="1" vertex="1">
@@ -70,7 +70,7 @@
                 <mxCell id="e4" value=".astream()" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;" parent="1" source="fastapi" target="langgraph" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="memory" value="&lt;b&gt;MemorySaver&lt;/b&gt;&lt;hr&gt;In-memory checkpointer&lt;br&gt;thread_id per session" style="fontColor=#333333;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;fontSize=10;" vertex="1" parent="1">
+                <mxCell id="memory" value="&lt;b&gt;AgentCoreMemorySaver&lt;/b&gt;&lt;hr&gt;Persistent checkpointer&lt;br&gt;actor_id + thread_id" style="fontColor=#333333;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;fontSize=10;" vertex="1" parent="1">
                     <mxGeometry x="892" y="460" width="200" height="55" as="geometry"/>
                 </mxCell>
                 <mxCell id="e-mem" value="checkpoint" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=9;" edge="1" parent="1" source="langgraph" target="memory">
@@ -125,14 +125,20 @@
                 <mxCell id="leg5" value="External Service" style="fontColor=#333333;rounded=1;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=9;align=center;" parent="1" vertex="1">
                     <mxGeometry x="1280" y="820" width="180" height="25" as="geometry"/>
                 </mxCell>
-                <mxCell id="chars" value="&lt;b&gt;Characteristics&lt;/b&gt;&lt;hr&gt;• Auth: API Gateway + Cognito JWT&lt;br&gt;• Streaming: SSE via .astream()&lt;br&gt;• Agent: LangGraph ReAct pattern&lt;br&gt;• Memory: MemorySaver (in-process)&lt;br&gt;• Tools: 2 yfinance + RAG retrieval&lt;br&gt;• Observability: Langfuse traces&lt;br&gt;• IaC: Terraform" style="fontColor=#333333;shape=note;html=1;fillColor=#ffffcc;strokeColor=#d6b656;align=left;spacingLeft=8;fontSize=10;size=14;" parent="1" vertex="1">
-                    <mxGeometry x="20" y="890" width="260" height="140" as="geometry"/>
+                <mxCell id="bedrock" value="&lt;b&gt;Amazon Bedrock&lt;/b&gt;&lt;hr&gt;Claude Sonnet (LLM)&lt;br&gt;Titan Embeddings (512d)" style="fontColor=#333333;rounded=1;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=center;fontSize=10;" vertex="1" parent="1">
+                    <mxGeometry x="20" y="505" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-bedrock-llm" value="LLM calls" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=9;" edge="1" parent="1" source="langgraph" target="bedrock">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="chars" value="&lt;b&gt;Characteristics&lt;/b&gt;&lt;hr&gt;• Auth: AgentCore Gateway + Cognito JWT&lt;br&gt;• Streaming: SSE via .astream()&lt;br&gt;• Agent: LangGraph ReAct pattern&lt;br&gt;• Memory: AgentCoreMemorySaver (persistent)&lt;br&gt;• LLM: Claude Sonnet via Bedrock (parameterized)&lt;br&gt;• Embeddings: Titan 512d (parameterized)&lt;br&gt;• RAG: FAISS pre-built index (in-memory)&lt;br&gt;• Tools: 2 yfinance + RAG retrieval&lt;br&gt;• Observability: Langfuse traces&lt;br&gt;• IaC: Terraform (awscc provider)&lt;br&gt;• Runtime: ARM64 container on port 8080" style="fontColor=#333333;shape=note;html=1;fillColor=#ffffcc;strokeColor=#d6b656;align=left;spacingLeft=8;fontSize=10;size=14;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="890" width="310" height="190" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
     <diagram id="react-agent" name="ReAct Agent Flow">
-        <mxGraphModel dx="783" dy="562" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+        <mxGraphModel dx="967" dy="334" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -172,7 +178,7 @@
                 <mxCell id="r-stream" value="&lt;b&gt;Streaming&lt;/b&gt;&lt;hr&gt;.astream(stream_mode=&amp;quot;updates&amp;quot;)&lt;br&gt;SSE events emitted at each node" style="fontColor=#333333;shape=note;html=1;fillColor=#ffffcc;strokeColor=#d6b656;align=left;spacingLeft=8;fontSize=10;size=14;" parent="1" vertex="1">
                     <mxGeometry x="1080" y="180" width="260" height="70" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-memory" value="&lt;b&gt;MemorySaver&lt;/b&gt;&lt;hr&gt;In-memory checkpointer&lt;br&gt;Persists state per thread_id&lt;br&gt;Wiped on container restart (no real db for this)" style="fontColor=#333333;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;fontSize=9;" vertex="1" parent="1">
+                <mxCell id="r-memory" value="&lt;b&gt;AgentCoreMemorySaver&lt;/b&gt;&lt;hr&gt;Persistent checkpointer (AgentCore Memory)&lt;br&gt;Keyed by actor_id + thread_id&lt;br&gt;Survives container restarts" style="fontColor=#333333;rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=center;fontSize=9;" vertex="1" parent="1">
                     <mxGeometry x="1080" y="290" width="260" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="re-mem" value="save/load state" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=9;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="r-llm" target="r-memory">
@@ -219,11 +225,11 @@
                 <mxCell id="r-leg4" value="Decision / Routing" style="fontColor=#333333;rounded=1;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=center;" parent="1" vertex="1">
                     <mxGeometry x="1280" y="820" width="180" height="25" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-chars" value="&lt;b&gt;Characteristics&lt;/b&gt;&lt;hr&gt;• Pattern: ReAct (Reason + Act)&lt;br&gt;• Graph: StateGraph(MessagesState)&lt;br&gt;• Nodes: llm_call, tool_node&lt;br&gt;• Routing: conditional_edges&lt;br&gt;• Loop: tool_node → llm_call&lt;br&gt;• Memory: MemorySaver (in-process)&lt;br&gt;• Streaming: .astream(updates)" style="fontColor=#333333;shape=note;html=1;fillColor=#ffffcc;strokeColor=#d6b656;align=left;spacingLeft=8;fontSize=10;size=14;" parent="1" vertex="1">
-                    <mxGeometry x="180" y="420" width="260" height="130" as="geometry"/>
+                <mxCell id="r-chars" value="&lt;b&gt;Characteristics&lt;/b&gt;&lt;hr&gt;• Pattern: ReAct (Reason + Act)&lt;br&gt;• Graph: StateGraph(MessagesState)&lt;br&gt;• Nodes: llm_call, tool_node&lt;br&gt;• Routing: conditional_edges&lt;br&gt;• Loop: tool_node → llm_call&lt;br&gt;• Memory: AgentCoreMemorySaver (persistent)&lt;br&gt;• LLM: Claude Sonnet via Bedrock&lt;br&gt;• Streaming: .astream(updates)" style="fontColor=#333333;shape=note;html=1;fillColor=#ffffcc;strokeColor=#d6b656;align=left;spacingLeft=8;fontSize=10;size=14;" parent="1" vertex="1">
+                    <mxGeometry x="180" y="420" width="260" height="145" as="geometry"/>
                 </mxCell>
-                <mxCell id="r-code" value="&lt;b&gt;Graph Definition&lt;/b&gt;&lt;hr&gt;agent = StateGraph(MessagesState)&lt;br&gt;agent.add_node(&amp;quot;llm_call&amp;quot;, llm_call)&lt;br&gt;agent.add_node(&amp;quot;tool_node&amp;quot;, tool_node)&lt;br&gt;agent.add_edge(START, &amp;quot;llm_call&amp;quot;)&lt;br&gt;agent.add_conditional_edges(&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;quot;llm_call&amp;quot;, should_continue,&lt;br&gt;&amp;nbsp;&amp;nbsp;[&amp;quot;tool_node&amp;quot;, END])&lt;br&gt;agent.add_edge(&amp;quot;tool_node&amp;quot;, &amp;quot;llm_call&amp;quot;)&lt;br&gt;agent.compile(&lt;br&gt;&amp;nbsp;&amp;nbsp;checkpointer=MemorySaver())" style="fontColor=#333333;shape=note;html=1;fillColor=#ffffcc;strokeColor=#d6b656;align=left;spacingLeft=8;fontSize=9;size=14;" parent="1" vertex="1">
-                    <mxGeometry x="180" y="580" width="260" height="160" as="geometry"/>
+                <mxCell id="r-code" value="&lt;b&gt;Graph Definition&lt;/b&gt;&lt;hr&gt;checkpointer = AgentCoreMemorySaver(&lt;br&gt;&amp;nbsp;&amp;nbsp;memory_id=AGENTCORE_MEMORY_ID)&lt;br&gt;&lt;br&gt;agent = StateGraph(MessagesState)&lt;br&gt;agent.add_node(&amp;quot;llm_call&amp;quot;, llm_call)&lt;br&gt;agent.add_node(&amp;quot;tool_node&amp;quot;, tool_node)&lt;br&gt;agent.add_edge(START, &amp;quot;llm_call&amp;quot;)&lt;br&gt;agent.add_conditional_edges(&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;quot;llm_call&amp;quot;, should_continue,&lt;br&gt;&amp;nbsp;&amp;nbsp;[&amp;quot;tool_node&amp;quot;, END])&lt;br&gt;agent.add_edge(&amp;quot;tool_node&amp;quot;, &amp;quot;llm_call&amp;quot;)&lt;br&gt;agent.compile(checkpointer=checkpointer)" style="fontColor=#333333;shape=note;html=1;fillColor=#ffffcc;strokeColor=#d6b656;align=left;spacingLeft=8;fontSize=9;size=14;" parent="1" vertex="1">
+                    <mxGeometry x="180" y="595" width="260" height="175" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
