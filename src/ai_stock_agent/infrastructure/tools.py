@@ -5,9 +5,11 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-from langchain_core.tools import tool
+from langchain_core.tools import BaseTool, tool
+from langchain_core.tools.retriever import create_retriever_tool
 
 if TYPE_CHECKING:
+    from ai_stock_agent.adapters.outbound.faiss_retriever import FAISSRetrieverAdapter
     from ai_stock_agent.adapters.outbound.yfinance_stock import YFinanceStockProvider
 
 _stock_provider: YFinanceStockProvider | None = None
@@ -22,6 +24,17 @@ def _get_stock_provider() -> YFinanceStockProvider:
     if _stock_provider is None:
         raise RuntimeError("Stock provider not initialised — call set_stock_provider() first")
     return _stock_provider
+
+
+def build_retriever_tool(retriever_adapter: FAISSRetrieverAdapter) -> BaseTool:
+    """Create the RAG retriever tool from a FAISS retriever adapter."""
+    return create_retriever_tool(
+        retriever_adapter.as_retriever(k=4),
+        "retrieve_documents",
+        "Search Amazon financial documents including the 2024 Annual Report, "
+        "Q2 2025 Earnings Release, and Q3 2025 Earnings Release. "
+        "Use this for questions about Amazon's business, financials, operations, or strategy.",
+    )
 
 
 @tool
