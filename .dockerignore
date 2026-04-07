@@ -1,0 +1,53 @@
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*.egg-info
+.venv
+.pytest_cache
+.coverage
+htmlcov
+.mypy_cache
+.ruff_cache
+
+# Dev / IDE
+.vscode
+.cursor
+.claude
+.github
+.pre-commit-config.yaml
+
+# Documentation (not needed at runtime)
+docs/
+notebooks/
+*.md
+!prompts/*.md
+
+# Terraform
+terraform/
+*.tfstate*
+
+# Tests
+tests/
+
+# Environment files
+.env
+.env.*
+*.tfvars
+
+# OS files
+.DS_Store
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Data (FAISS index is COPY'd explicitly)
+data/faiss_index/
+
+# Misc
+agent-transcripts/
