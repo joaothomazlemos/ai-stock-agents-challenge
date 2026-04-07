@@ -38,9 +38,18 @@ class Settings(BaseSettings):
         default="https://cloud.langfuse.com", description="Langfuse Cloud base URL"
     )
 
-    # FAISS
+    # FAISS / RAG
     faiss_index_path: str = Field(
         default="data/faiss_index", description="Path to pre-built FAISS index directory"
+    )
+    chunk_size: int = Field(
+        default=1500, ge=200, le=10000, description="Character size per document chunk"
+    )
+    chunk_overlap: int = Field(
+        default=300, ge=0, le=5000, description="Overlap between consecutive chunks"
+    )
+    retriever_k: int = Field(
+        default=5, ge=1, le=20, description="Number of chunks to retrieve per query"
     )
 
     # Server

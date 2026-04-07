@@ -26,10 +26,10 @@ def _get_stock_provider() -> YFinanceStockProvider:
     return _stock_provider
 
 
-def build_retriever_tool(retriever_adapter: FAISSRetrieverAdapter) -> BaseTool:
+def build_retriever_tool(retriever_adapter: FAISSRetrieverAdapter, k: int = 5) -> BaseTool:
     """Create the RAG retriever tool from a FAISS retriever adapter."""
     return create_retriever_tool(
-        retriever_adapter.as_retriever(k=4),
+        retriever_adapter.as_retriever(k=k),
         "retrieve_documents",
         "Search Amazon financial documents including the 2024 Annual Report, "
         "Q2 2025 Earnings Release, and Q3 2025 Earnings Release. "

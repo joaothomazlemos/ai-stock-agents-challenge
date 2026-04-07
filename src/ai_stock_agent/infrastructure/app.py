@@ -76,8 +76,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
         embedder = BedrockEmbedderAdapter(settings.embedding_model_id, settings.aws_region)
         retriever = FAISSRetrieverAdapter(str(faiss_path), embedder.langchain_embeddings)
-        tools.append(build_retriever_tool(retriever))
-        logger.info("FAISS index loaded from %s", faiss_path)
+        tools.append(build_retriever_tool(retriever, k=settings.retriever_k))
+        logger.info("FAISS index loaded from %s (k=%d)", faiss_path, settings.retriever_k)
     else:
         logger.warning("FAISS index not found at %s — RAG tool disabled", faiss_path)
 
