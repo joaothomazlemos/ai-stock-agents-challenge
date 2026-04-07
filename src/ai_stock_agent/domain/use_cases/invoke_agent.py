@@ -31,7 +31,11 @@ class InvokeAgentUseCase:
         self._actor_id = actor_id
 
     async def invoke(
-        self, prompt: str, thread_id: str, stream: bool
+        self,
+        prompt: str,
+        thread_id: str,
+        stream: bool,
+        callbacks: list[Any] | None = None,
     ) -> str | AsyncIterator[str]:
         config: dict[str, Any] = {
             "configurable": {
@@ -39,6 +43,9 @@ class InvokeAgentUseCase:
                 "actor_id": self._actor_id,
             },
         }
+        if callbacks:
+            config["callbacks"] = callbacks
+
         graph_input = {"messages": [{"role": "user", "content": prompt}]}
 
         if stream:
