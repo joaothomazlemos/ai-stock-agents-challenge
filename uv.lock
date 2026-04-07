@@ -34,6 +34,7 @@ dependencies = [
 [package.optional-dependencies]
 dev = [
     { name = "httpx" },
+    { name = "httpx-sse" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
@@ -44,6 +45,7 @@ requires-dist = [
     { name = "faiss-cpu" },
     { name = "fastapi" },
     { name = "httpx", marker = "extra == 'dev'" },
+    { name = "httpx-sse", marker = "extra == 'dev'" },
     { name = "langchain-aws" },
     { name = "langchain-community" },
     { name = "langfuse" },

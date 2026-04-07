@@ -23,6 +23,7 @@ dev = [
     "pytest",
     "pytest-asyncio",
     "httpx",
+    "httpx-sse",
     "ruff",
 ]
 
