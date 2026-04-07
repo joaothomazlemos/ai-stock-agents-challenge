@@ -8,9 +8,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # AWS
-    aws_region: str = Field(
-        default="us-east-1", description="AWS region for Bedrock and AgentCore"
-    )
+    aws_region: str = Field(default="us-east-1", description="AWS region for Bedrock and AgentCore")
 
     # Bedrock LLM
     bedrock_model_id: str = Field(

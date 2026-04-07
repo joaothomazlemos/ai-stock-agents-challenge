@@ -31,9 +31,7 @@ class YFinanceStockProvider:
             },
         )
 
-    def get_historical_prices(
-        self, ticker: str, start: str, end: str
-    ) -> list[StockPrice]:
+    def get_historical_prices(self, ticker: str, start: str, end: str) -> list[StockPrice]:
         t = yf.Ticker(ticker)
         hist = t.history(start=start, end=end)
         currency = t.info.get("currency", "USD")

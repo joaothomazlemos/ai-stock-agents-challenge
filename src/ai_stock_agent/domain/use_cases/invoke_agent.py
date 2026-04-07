@@ -7,9 +7,7 @@ from typing import Any, Protocol
 class IAgentGraph(Protocol):
     """Abstraction over a compiled agent graph (implemented by infrastructure)."""
 
-    async def ainvoke(
-        self, input: dict[str, Any], config: dict[str, Any]
-    ) -> dict[str, Any]: ...
+    async def ainvoke(self, input: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]: ...
 
     def astream(
         self,
