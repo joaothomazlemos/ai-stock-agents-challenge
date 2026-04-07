@@ -1,0 +1,36 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.0
+    hooks:
+      # Run the linter
+      - id: ruff
+        args: [--fix]
+      # Run the formatter
+      - id: ruff-format
+  - repo: https://github.com/gruntwork-io/pre-commit
+    rev: v0.1.30 # Get the latest from: https://github.com/gruntwork-io/pre-commit/releases
+    hooks:
+      - id: terraform-validate
+      - id: terraform-fmt
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.105.0 # Get the latest from: https://github.com/antonbabenko/pre-commit-terraform/releases
+    hooks:
+      - id: terraform_docs
+      - id: terraform_tflint
+        args:
+          - "--args=--enable-rule=terraform_deprecated_interpolation"
+          - "--args=--enable-rule=terraform_deprecated_index"
+          - "--args=--enable-rule=terraform_unused_declarations"
+          - "--args=--enable-rule=terraform_comment_syntax"
+          - "--args=--enable-rule=terraform_documented_outputs"
+          - "--args=--enable-rule=terraform_documented_variables"
+          - "--args=--enable-rule=terraform_typed_variables"
+          - "--args=--enable-rule=terraform_naming_convention"
+          - "--args=--enable-rule=terraform_required_version"
+          - "--args=--enable-rule=terraform_required_providers"
+          - "--args=--enable-rule=terraform_unused_required_providers"
+          - "--args=--enable-rule=terraform_standard_module_structure"
+  - repo: https://github.com/gitleaks/gitleaks # Get the latest from: https://github.com/gitleaks/gitleaks/releases
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
