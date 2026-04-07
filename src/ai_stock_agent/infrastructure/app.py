@@ -39,7 +39,11 @@ def _build_checkpointer(settings: Settings):
 
 
 def _build_langfuse_factory(settings: Settings):
-    """Return a factory callable that creates a fresh Langfuse handler per request."""
+    """Return a factory callable that creates a fresh Langfuse handler per request.
+
+    The Langfuse SDK reads credentials from LANGFUSE_PUBLIC_KEY,
+    LANGFUSE_SECRET_KEY, and LANGFUSE_HOST environment variables.
+    """
     if not settings.langfuse_public_key or not settings.langfuse_secret_key:
         logger.info("Langfuse keys not configured — tracing disabled")
         return None
@@ -47,11 +51,7 @@ def _build_langfuse_factory(settings: Settings):
     def factory():
         from langfuse.langchain import CallbackHandler
 
-        return CallbackHandler(
-            public_key=settings.langfuse_public_key,
-            secret_key=settings.langfuse_secret_key,
-            host=settings.langfuse_host,
-        )
+        return CallbackHandler()
 
     return factory
 

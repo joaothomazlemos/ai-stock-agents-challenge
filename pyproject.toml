@@ -5,6 +5,7 @@ description = "LangGraph ReAct agent for stock analysis on AWS Bedrock AgentCore
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "langchain",
     "langgraph",
     "langchain-aws",
     "langchain-community",

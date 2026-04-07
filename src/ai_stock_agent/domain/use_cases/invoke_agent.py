@@ -53,7 +53,22 @@ class InvokeAgentUseCase:
 
         result = await self._graph.ainvoke(graph_input, config)
         messages = result["messages"]
-        return str(messages[-1].content) if messages else ""
+        if not messages:
+            return ""
+        return self._extract_text(messages[-1].content)
+
+    @staticmethod
+    def _extract_text(content: Any) -> str:
+        """Extract plain text from LLM content (handles Anthropic content blocks)."""
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            return "".join(
+                block.get("text", "") if isinstance(block, dict) else str(block)
+                for block in content
+                if not isinstance(block, dict) or block.get("type") == "text"
+            )
+        return str(content)
 
     async def _stream_tokens(
         self, graph_input: dict[str, Any], config: dict[str, Any]
@@ -67,4 +82,6 @@ class InvokeAgentUseCase:
                 and metadata.get("langgraph_node") == "agent"
             )
             if is_agent_token:
-                yield chunk.content
+                text = self._extract_text(chunk.content)
+                if text:
+                    yield text

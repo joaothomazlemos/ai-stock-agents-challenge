@@ -41,7 +41,9 @@ class TestSSEFormat:
         assert len(token_events) > 0
         for tok in token_events:
             assert "content" in tok
-            assert isinstance(tok["content"], str)
+            assert isinstance(tok["content"], str), (
+                f"Expected string content, got {type(tok['content'])}: {tok['content']}"
+            )
 
     async def test_end_event_is_final(self, e2e_client):
         events = await collect_sse_events(

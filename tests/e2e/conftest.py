@@ -24,9 +24,9 @@ async def _require_server():
         pytest.skip(f"API server not reachable at {BASE_URL} — skipping E2E tests")
 
 
-@pytest_asyncio.fixture(scope="session", loop_scope="session")
+@pytest.fixture
 async def e2e_client():
-    """Shared HTTP client for E2E tests. Session-scoped for connection reuse."""
+    """HTTP client for E2E tests. Function-scoped to avoid event loop conflicts."""
     async with httpx.AsyncClient(
         base_url=BASE_URL,
         timeout=httpx.Timeout(connect=10, read=120, write=10, pool=10),
@@ -67,4 +67,15 @@ async def collect_sse_events(
 
 def extract_full_text(events: list[dict]) -> str:
     """Concatenate all token events into the full response text."""
-    return "".join(e["content"] for e in events if e.get("type") == "token")
+    parts: list[str] = []
+    for e in events:
+        if e.get("type") != "token":
+            continue
+        content = e.get("content", "")
+        if isinstance(content, str):
+            parts.append(content)
+        elif isinstance(content, list):
+            for block in content:
+                if isinstance(block, dict) and block.get("type") == "text":
+                    parts.append(block.get("text", ""))
+    return "".join(parts)

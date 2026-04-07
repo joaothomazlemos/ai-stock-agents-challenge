@@ -14,8 +14,8 @@ class Settings(BaseSettings):
 
     # Bedrock LLM
     bedrock_model_id: str = Field(
-        default="anthropic.claude-sonnet-4-20250514",
-        description="Bedrock model ID for the chat LLM",
+        default="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        description="Bedrock model ID or inference profile ID for the chat LLM",
     )
 
     # Bedrock Embeddings
