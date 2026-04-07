@@ -581,22 +581,34 @@ pytest -m llm -v                       # LLM evaluation
 
 **Goal:** Single `terraform apply` provisions all AWS resources.
 
+**Implementation Notes (discovered during development):**
+
+- **Terraform >= 1.14 required** — the `aws-ia/agentcore/aws` module v1.0 enforces this via its own `required_version`. AgentCore resources (`runtime`, `endpoint`, `memory`, `gateway`) use the AWSCC provider (auto-generated from CloudFormation schemas) because the standard AWS provider doesn't support them yet.
+- **S3 remote backend** — state stored in S3 with native lockfile (`use_lockfile = true`, no DynamoDB needed on TF >= 1.10). New users in a different AWS account must run `bash terraform/bootstrap.sh` before `terraform init` to create the state bucket.
+- **User-managed container** — since we build/push Docker images ourselves (`make build && make push`), the module's runtime uses `container_image_uri` (not `container_source_path`). This requires a custom `execution_role_arn` because the module only auto-creates IAM roles for module-managed builds.
+- **Known for_each constraint** — the runtime role ARN is constructed from `data.aws_caller_identity` + `var.project_name` (not a direct resource reference) to avoid an "unknown key in for_each" error when the module evaluates `execution_role_arn == null`. A `depends_on` ensures correct ordering.
+- **AWSCC naming rules** — memory and strategy names must match `^[a-zA-Z][a-zA-Z0-9_]{0,47}$` (underscores only, no hyphens).
+
 Tasks:
 
-- [ ] Create `terraform/providers.tf` — AWS + AWSCC providers, pin `aws` >= 6.17.0 (file: `terraform/providers.tf`)
-- [ ] Create `terraform/variables.tf` — inputs: region, project name, model IDs, Langfuse keys, Cognito config (file: `terraform/variables.tf`)
-- [ ] Create `terraform/cognito.tf` — User pool (password policy, no MFA for demo), app client with `ALLOW_USER_PASSWORD_AUTH` (file: `terraform/cognito.tf`)
-- [ ] Create `terraform/ecr.tf` — ECR repository for Docker image (file: `terraform/ecr.tf`)
-- [ ] Create `terraform/iam.tf` — AgentCore execution role with policies: Bedrock invoke, Memory access, ECR pull, CloudWatch logs (file: `terraform/iam.tf`)
-- [ ] Create `terraform/main.tf` — AgentCore Runtime (CONTAINER, ARM64), Runtime Endpoint, Memory resource, Gateway with `CUSTOM_JWT` authorizer pointing to Cognito (file: `terraform/main.tf`)
-- [ ] Create `terraform/outputs.tf` — endpoint URL, gateway URL, Cognito pool ID, client ID, ECR repo URL, Memory ARN (file: `terraform/outputs.tf`)
-- [ ] Test: `terraform init && terraform plan` succeeds
+- [x] Create `terraform/providers.tf` — AWS + AWSCC providers (`aws >= 6.18.0`, `awscc >= 1.30.0`), S3 remote backend with native lockfile (file: `terraform/providers.tf`)
+- [x] Create `terraform/bootstrap.sh` — one-time script to create the S3 state bucket with versioning, encryption, and public access block (file: `terraform/bootstrap.sh`)
+- [x] Create `terraform/variables.tf` — inputs: region, project name, model IDs, Langfuse keys, container image tag (file: `terraform/variables.tf`)
+- [x] Create `terraform/cognito.tf` — User pool (password policy, no MFA for demo), app client with `ALLOW_USER_PASSWORD_AUTH` (file: `terraform/cognito.tf`)
+- [x] Create `terraform/ecr.tf` — ECR repository with lifecycle policy (keep last 5 images) (file: `terraform/ecr.tf`)
+- [x] Create `terraform/iam.tf` — AgentCore execution role with policies: Bedrock invoke, Memory access, ECR pull, CloudWatch logs, X-Ray, Workload Identity (file: `terraform/iam.tf`)
+- [x] Create `terraform/main.tf` — `aws-ia/agentcore/aws` module: Runtime (CONTAINER, user-managed), Runtime Endpoint, Memory (semantic strategy), Gateway with `CUSTOM_JWT` authorizer pointing to Cognito (file: `terraform/main.tf`)
+- [x] Create `terraform/outputs.tf` — endpoint ARN, gateway URL, Cognito pool ID, client ID, ECR repo URL, Memory ARN, Cognito issuer URL (file: `terraform/outputs.tf`)
+- [x] Test: `terraform init && terraform validate && terraform plan` succeeds (16 resources planned)
 
 **Depends on:** None (can be developed in parallel with Phases 2-6)
 
 **Verify:**
 
 ```text
+# First time only (creates S3 state bucket):
+bash terraform/bootstrap.sh
+
 cd terraform && terraform init && terraform validate && terraform plan
 ```
 
@@ -643,7 +655,7 @@ Tasks:
 - [ ] Cell 9: Multi-turn demo — follow-up question in same `thread_id` (file: `notebooks/demo.ipynb`)
 - [ ] Cell 10: Langfuse traces — fetch via API + display screenshots from `notebooks/images/` (file: `notebooks/demo.ipynb`)
 - [ ] Capture Langfuse trace screenshots into `notebooks/images/` (manual step during Phase 8 verification)
-- [ ] Write `README.md` — prerequisites, AWS setup, `make` targets in order, architecture overview, notebook instructions (file: `README.md`)
+- [ ] Write `README.md` — prerequisites, AWS setup (including `bash terraform/bootstrap.sh` for first-time S3 state bucket creation), `make` targets in order, architecture overview, notebook instructions (file: `README.md`)
 - [ ] Run full E2E suite + LLM eval against deployed endpoint
 
 **Depends on:** Phase 8 (deployed endpoint)
@@ -770,7 +782,8 @@ THEN a trace appears in Langfuse Cloud with tool calls and LLM responses
 | Create | `src/ai_stock_agent/infrastructure/tools.py` | LangGraph `@tool` wrappers |
 | Create | `prompts/system.md` | Agent system prompt |
 | Create | `scripts/build_index.py` | PDF ingestion → FAISS index builder |
-| Create | `terraform/providers.tf` | AWS provider config |
+| Create | `terraform/providers.tf` | AWS + AWSCC providers, S3 remote backend |
+| Create | `terraform/bootstrap.sh` | One-time S3 state bucket creation script |
 | Create | `terraform/variables.tf` | Input variables |
 | Create | `terraform/outputs.tf` | Output values |
 | Create | `terraform/cognito.tf` | Cognito user pool + app client |
