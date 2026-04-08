@@ -40,9 +40,9 @@ A LangGraph ReAct agent deployed on AWS Bedrock AgentCore that answers real-time
 └──────────────────────────────────────────────────────────────────────┘
 
 Client: Jupyter Notebook
-  1. boto3 InitiateAuth → Cognito JWT
-  2. POST /invocations via Gateway with Bearer JWT
-  3. Receive SSE stream
+  1. boto3 InitiateAuth → Cognito JWT (auth demo)
+  2. boto3 invoke_agent_runtime → AgentCore Runtime
+  3. Receive SSE stream via StreamingBody
 ```
 
 ---
@@ -102,20 +102,42 @@ curl -N -X POST http://localhost:8080/invocations \
 ### Step 1: Bootstrap Terraform State (first time only)
 
 ```bash
-# Creates the S3 bucket for Terraform remote state
+# From the project root — creates the S3 bucket for Terraform remote state
 bash terraform/bootstrap.sh
 ```
 
-### Step 2: Initialize and Deploy Infrastructure
+### Step 2: Configure Terraform Variables
 
 ```bash
 cd terraform
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Edit `terraform.tfvars` with your values:
+
+| Variable | Required | How to get it |
+| --- | --- | --- |
+| `aws_region` | Yes | AWS region with Bedrock + AgentCore support (default: `us-east-1`) |
+| `project_name` | Yes | Prefix for all resource names (default: `ai-stock-agent`) |
+| `container_image_tag` | Yes | Tag you pushed to ECR (e.g. `latest`, `v4`) |
+| `bedrock_model_id` | Yes | Inference profile ID — run `aws bedrock list-inference-profiles` |
+| `embedding_model_id` | Yes | Default: `amazon.titan-embed-text-v2:0` |
+| `embedding_dims` | Yes | Default: `512` |
+| `langfuse_public_key` | No | From [Langfuse Cloud](https://cloud.langfuse.com) → Settings → API Keys |
+| `langfuse_secret_key` | No | Same as above (leave empty to disable tracing) |
+| `langfuse_host` | No | Default: `https://cloud.langfuse.com` |
+
+> **Note:** `terraform.tfvars` is gitignored — your secrets stay out of version control.
+
+### Step 3: Initialize and Deploy Infrastructure
+
+```bash
 terraform init
 terraform plan
 terraform apply
 ```
 
-This provisions: Cognito User Pool, ECR Repository, IAM Roles, AgentCore Runtime, Endpoint, Memory, and Gateway.
+This provisions: Cognito User Pool, ECR Repository, IAM Roles, AgentCore Runtime, Endpoint, Memory, and Gateway. The endpoint version is auto-synced to the latest runtime version on every apply.
 
 Save the outputs — you'll need them for Docker push and the notebook:
 
@@ -123,7 +145,7 @@ Save the outputs — you'll need them for Docker push and the notebook:
 terraform output
 ```
 
-### Step 3: Build and Push Docker Image
+### Step 4: Build and Push Docker Image
 
 ```bash
 # Build ARM64 image
@@ -133,59 +155,91 @@ make build
 aws ecr get-login-password --region us-east-1 | \
   docker login --username AWS --password-stdin $(terraform -chdir=terraform output -raw ecr_repository_url | cut -d/ -f1)
 
-# Push to ECR
+# Tag and push to ECR
 ECR_REPO=$(terraform -chdir=terraform output -raw ecr_repository_url) make push
+
+# Update container_image_tag in terraform.tfvars if using a new tag, then re-apply
+cd terraform && terraform apply
 ```
 
-### Step 4: Create a Cognito Test User
+### Step 5: Create a Cognito Test User
 
 ```bash
-aws cognito-idp admin-create-user \
-  --user-pool-id $(terraform -chdir=terraform output -raw cognito_user_pool_id) \
-  --username testuser@example.com \
-  --temporary-password "TempPass1!" \
-  --message-action SUPPRESS
+aws cognito-idp admin-create-user --user-pool-id $(terraform -chdir=terraform output -raw cognito_user_pool_id) --username testuser@example.com --temporary-password 'TempPass1!' --region us-east-1 --message-action SUPPRESS
 
-aws cognito-idp admin-set-user-password \
-  --user-pool-id $(terraform -chdir=terraform output -raw cognito_user_pool_id) \
-  --username testuser@example.com \
-  --password "YourSecurePass1!" \
-  --permanent
+aws cognito-idp admin-set-user-password --user-pool-id $(terraform -chdir=terraform output -raw cognito_user_pool_id) --username testuser@example.com --password 'securePass1' --region us-east-1 --permanent
 ```
 
-### Step 5: Verify Deployment
+### Step 6: Verify Deployment
 
-```bash
-# Health check (via Runtime Endpoint)
-curl https://<endpoint>/ping
+The AgentCore Runtime is invoked via the AWS SDK (not direct HTTP). Use Python:
 
-# Authenticated invocation (via Gateway)
-# First get a JWT token, then:
-curl -N -X POST https://<gateway-url>/invocations \
-  -H "Authorization: Bearer <jwt>" \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "What is the stock price for Amazon right now?"}'
+```python
+import boto3, json
+
+# Split the endpoint ARN into runtime ARN + qualifier
+endpoint_arn = "<runtime_endpoint_arn from terraform output>"
+runtime_arn, qualifier = endpoint_arn.split("/runtime-endpoint/")
+
+client = boto3.client("bedrock-agentcore", region_name="us-east-1")
+response = client.invoke_agent_runtime(
+    agentRuntimeArn=runtime_arn,
+    qualifier=qualifier,
+    runtimeSessionId="test-session",
+    contentType="application/json",
+    accept="text/event-stream",
+    payload=json.dumps({"prompt": "What is the stock price for Amazon right now?", "stream": True}).encode(),
+)
+
+for line in response["response"].iter_lines():
+    decoded = line.decode("utf-8") if isinstance(line, bytes) else line
+    if decoded.startswith("data: "):
+        data = json.loads(decoded[6:])
+        if data.get("type") == "token":
+            print(data["content"], end="", flush=True)
+        elif data.get("type") == "end":
+            break
+print()
 ```
+
+> **Note:** The caller's IAM identity needs `bedrock-agentcore:InvokeAgentRuntime` permission.
+> The Cognito Gateway is for MCP-protocol clients; for direct invocation, use the SDK.
 
 ---
 
 ## Running the Demo Notebook
 
+### 1. Install the Jupyter kernel (first time only)
+
 ```bash
-# Set environment variables (from terraform output)
-export GATEWAY_URL=$(terraform -chdir=terraform output -raw gateway_url)
-export COGNITO_USER_POOL_ID=$(terraform -chdir=terraform output -raw cognito_user_pool_id)
-export COGNITO_CLIENT_ID=$(terraform -chdir=terraform output -raw cognito_client_id)
-export COGNITO_USERNAME="testuser@example.com"
-export COGNITO_PASSWORD="YourSecurePass1!"
-
-# Optional: Langfuse trace retrieval in the notebook
-export LANGFUSE_PUBLIC_KEY="pk-..."
-export LANGFUSE_SECRET_KEY="sk-..."
-
-# Launch Jupyter
-jupyter notebook notebooks/demo.ipynb
+uv run python -m ipykernel install --user --name ai-stock-agent --display-name "AI Stock Agent (Python 3.12)"
 ```
+
+### 2. Create the notebook environment file
+
+```bash
+cp .env.notebook.example .env.notebook
+```
+
+Edit `.env.notebook` with your actual Terraform outputs:
+
+```bash
+# Fill in values from terraform output
+terraform -chdir=terraform output
+```
+
+| Variable | How to get it |
+| --- | --- |
+| `AWS_PROFILE` | AWS CLI profile name (or set `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` instead) |
+| `RUNTIME_ENDPOINT_ARN` | `terraform -chdir=terraform output -raw runtime_endpoint_arn` |
+| `COGNITO_USER_POOL_ID` | `terraform -chdir=terraform output -raw cognito_user_pool_id` |
+| `COGNITO_CLIENT_ID` | `terraform -chdir=terraform output -raw cognito_client_id` |
+| `COGNITO_USERNAME` | The Cognito user you created in Step 5 |
+| `COGNITO_PASSWORD` | The permanent password you set in Step 5 |
+
+### 3. Launch the notebook
+
+Open `notebooks/demo.ipynb` in Cursor/VS Code or Jupyter, select the **"AI Stock Agent (Python 3.12)"** kernel, and run all cells. The notebook loads configuration from `.env.notebook` automatically.
 
 The notebook runs all 5 required queries:
 
@@ -261,7 +315,7 @@ All configuration is via environment variables (see `.env.example`):
 | Variable | Default | Description |
 | --- | --- | --- |
 | `AWS_REGION` | `us-east-1` | AWS region for Bedrock and AgentCore |
-| `BEDROCK_MODEL_ID` | `anthropic.claude-sonnet-4-20250514` | Chat LLM model |
+| `BEDROCK_MODEL_ID` | `us.anthropic.claude-sonnet-4-20250514-v1:0` | Chat LLM (inference profile ID) |
 | `EMBEDDING_MODEL_ID` | `amazon.titan-embed-text-v2:0` | Embedding model |
 | `EMBEDDING_DIMS` | `512` | Embedding dimensions |
 | `AGENTCORE_MEMORY_ID` | *(empty)* | AgentCore Memory ARN (empty = in-memory) |
@@ -291,8 +345,8 @@ pytest -m e2e -v  # in another terminal
 # LLM evaluation tests (requires running server + Bedrock access)
 pytest -m llm -v
 
-# Against deployed endpoint
-BASE_URL=https://<gateway-url> pytest -m e2e -v
+# Against deployed endpoint (requires RUNTIME_ENDPOINT_ARN env var)
+RUNTIME_ENDPOINT_ARN=<arn> pytest -m e2e -v
 ```
 
 ---
