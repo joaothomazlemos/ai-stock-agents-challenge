@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -20,7 +21,15 @@ from ai_stock_agent.infrastructure.tools import (
     set_stock_provider,
 )
 
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, force=True)
 logger = logging.getLogger(__name__)
+
+
+def _extract_memory_id(memory_id_or_arn: str) -> str:
+    """Extract the short memory ID from a full ARN or return as-is."""
+    if memory_id_or_arn.startswith("arn:"):
+        return memory_id_or_arn.rsplit("/", 1)[-1]
+    return memory_id_or_arn
 
 
 def _build_checkpointer(settings: Settings):
@@ -28,8 +37,9 @@ def _build_checkpointer(settings: Settings):
     if settings.agentcore_memory_id:
         from langgraph_checkpoint_aws import AgentCoreMemorySaver
 
+        memory_id = _extract_memory_id(settings.agentcore_memory_id)
         return AgentCoreMemorySaver(
-            settings.agentcore_memory_id,
+            memory_id,
             region_name=settings.aws_region,
         )
     from langgraph.checkpoint.memory import MemorySaver

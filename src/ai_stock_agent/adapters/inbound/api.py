@@ -40,9 +40,10 @@ async def _sse_generator(token_iter: AsyncIterator[str]) -> AsyncIterator[str]:
         async for token in token_iter:
             payload = json.dumps({"type": "token", "content": token})
             yield f"data: {payload}\n\n"
-    except Exception:
+    except Exception as exc:
         logger.exception("Error during SSE streaming")
-        error = json.dumps({"type": "error", "content": "Internal streaming error"})
+        error_msg = f"{type(exc).__name__}: {exc}"
+        error = json.dumps({"type": "error", "content": error_msg})
         yield f"data: {error}\n\n"
     finally:
         yield f"data: {json.dumps({'type': 'end'})}\n\n"
