@@ -4,7 +4,7 @@ locals {
     ManagedBy = "terraform"
   }
 
-  cognito_issuer_url = "https://cognito-idp.${var.aws_region}.amazonaws.com/${aws_cognito_user_pool.this.id}"
+  cognito_issuer_url = "https://${aws_cognito_user_pool.this.endpoint}/.well-known/openid-configuration"
   runtime_role_arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-runtime"
 }
 
@@ -77,4 +77,23 @@ module "agentcore" {
   }
 
   tags = local.tags
+}
+
+# The agentcore module does not set agent_runtime_version on the endpoint,
+# so it stays pinned to the version at creation time. This resource syncs
+# the endpoint to the latest runtime version after every runtime update.
+resource "null_resource" "endpoint_version_sync" {
+  triggers = {
+    runtime_version = module.agentcore.runtime_versions["ai_stock_agent"]
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      aws bedrock-agentcore-control update-agent-runtime-endpoint \
+        --agent-runtime-id ${module.agentcore.runtime_ids["ai_stock_agent"]} \
+        --endpoint-name ai_stock_agent_endpoint \
+        --agent-runtime-version ${module.agentcore.runtime_versions["ai_stock_agent"]} \
+        --region ${var.aws_region}
+    EOT
+  }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BUCKET="ai-stock-agent-tfstate"
+BUCKET="jtl-exercise-tfstate"
 REGION="us-east-1"
 
 echo "Creating S3 bucket for Terraform state: ${BUCKET}"

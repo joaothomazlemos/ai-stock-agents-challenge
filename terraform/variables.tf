@@ -18,7 +18,7 @@ variable "project_name" {
 variable "bedrock_model_id" {
   description = "Bedrock model ID for the chat LLM."
   type        = string
-  default     = "anthropic.claude-sonnet-4-20250514"
+  default     = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 }
 
 variable "embedding_model_id" {

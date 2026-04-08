@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.14"
 
   backend "s3" {
-    bucket       = "ai-stock-agent-tfstate"
+    bucket       = "jtl-exercise-tfstate"
     key          = "ai-stock-agent/terraform.tfstate"
     region       = "us-east-1"
     use_lockfile = true
@@ -17,6 +17,10 @@ terraform {
     awscc = {
       source  = "hashicorp/awscc"
       version = ">= 1.30.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.0"
     }
   }
 }

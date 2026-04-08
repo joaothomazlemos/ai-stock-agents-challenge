@@ -1,0 +1,25 @@
+# ──────────────────────────────────────────────────────────
+# Copy this file to terraform.tfvars and fill in your values
+#   cp terraform.tfvars.example terraform.tfvars
+# terraform.tfvars is gitignored — secrets stay out of VCS.
+# ──────────────────────────────────────────────────────────
+
+aws_region          = "us-east-1"
+project_name        = "ai-stock-agent"
+
+# Docker image tag pushed to ECR (update after each docker push)
+container_image_tag = "latest"
+
+# Bedrock model — must be an inference profile ID, not a raw model ID
+# Run: aws bedrock list-inference-profiles --query "inferenceProfileSummaries[*].inferenceProfileId"
+bedrock_model_id   = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+
+# Embeddings — used to build and query the FAISS index
+embedding_model_id = "amazon.titan-embed-text-v2:0"
+embedding_dims     = 512
+
+# Langfuse — leave empty to disable tracing
+# Get keys from https://cloud.langfuse.com → Settings → API Keys
+langfuse_public_key = ""
+langfuse_secret_key = ""
+langfuse_host       = "https://cloud.langfuse.com"

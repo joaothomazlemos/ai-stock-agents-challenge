@@ -26,7 +26,10 @@ data "aws_iam_policy_document" "runtime_policy" {
       "bedrock:InvokeModel",
       "bedrock:InvokeModelWithResponseStream",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:bedrock:*::foundation-model/*",
+      "arn:aws:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*",
+    ]
   }
 
   statement {
@@ -53,14 +56,38 @@ data "aws_iam_policy_document" "runtime_policy" {
   }
 
   statement {
+    sid    = "AllowCloudWatchLogsDescribe"
+    effect = "Allow"
+    actions = [
+      "logs:DescribeLogGroups",
+    ]
+    resources = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:*"]
+  }
+
+  statement {
     sid    = "AllowCloudWatchLogs"
     effect = "Allow"
     actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
+      "logs:DescribeLogStreams",
       "logs:PutLogEvents",
     ]
-    resources = ["arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/bedrock/agentcore/*"]
+    resources = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/bedrock-agentcore/runtimes/*"]
+  }
+
+  statement {
+    sid    = "AllowCloudWatchMetrics"
+    effect = "Allow"
+    actions = [
+      "cloudwatch:PutMetricData",
+    ]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "cloudwatch:namespace"
+      values   = ["bedrock-agentcore"]
+    }
   }
 
   statement {
@@ -69,18 +96,24 @@ data "aws_iam_policy_document" "runtime_policy" {
     actions = [
       "xray:PutTraceSegments",
       "xray:PutTelemetryRecords",
+      "xray:GetSamplingRules",
+      "xray:GetSamplingTargets",
     ]
     resources = ["*"]
   }
 
   statement {
-    sid    = "AllowWorkloadIdentityToken"
+    sid    = "AllowWorkloadAccessToken"
     effect = "Allow"
     actions = [
-      "bedrock-agentcore:GetWorkloadIdentityToken",
-      "bedrock-agentcore:RefreshWorkloadIdentityToken",
+      "bedrock-agentcore:GetWorkloadAccessToken",
+      "bedrock-agentcore:GetWorkloadAccessTokenForJWT",
+      "bedrock-agentcore:GetWorkloadAccessTokenForUserId",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:bedrock-agentcore:${var.aws_region}:${data.aws_caller_identity.current.account_id}:workload-identity-directory/default",
+      "arn:aws:bedrock-agentcore:${var.aws_region}:${data.aws_caller_identity.current.account_id}:workload-identity-directory/default/workload-identity/${var.project_name}-*",
+    ]
   }
 }
 
