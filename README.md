@@ -6,44 +6,15 @@ A LangGraph ReAct agent deployed on AWS Bedrock AgentCore that answers real-time
 
 ## Architecture
 
-```text
-┌──────────────────────────────────────────────────────────────────────┐
-│                            AWS Cloud                                 │
-│                                                                      │
-│  ┌────────────┐    ┌───────────────────────┐    ┌──────────────┐    │
-│  │ Cognito    │◄───│ AgentCore Gateway     │    │ Terraform    │    │
-│  │ User Pool  │    │ CUSTOM_JWT authorizer │    │ (provisions  │    │
-│  └────────────┘    └───────────┬───────────┘    │  everything) │    │
-│                                │                 └──────────────┘    │
-│                         Proxy to Runtime                             │
-│                                ▼                                     │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │           AgentCore Runtime (ARM64 container)                  │  │
-│  │                                                                │  │
-│  │  FastAPI (port 8080)                                           │  │
-│  │  POST /invocations  →  LangGraph ReAct Agent  →  SSE stream   │  │
-│  │  GET  /ping         →  {"status": "Healthy"}                   │  │
-│  │                                                                │  │
-│  │  Tools:                                                        │  │
-│  │  ├── retrieve_realtime_stock_price   (yfinance)                │  │
-│  │  ├── retrieve_historical_stock_price (yfinance)                │  │
-│  │  └── retrieve_documents              (FAISS RAG)               │  │
-│  │                                                                │  │
-│  │  Memory: AgentCoreMemorySaver (multi-turn conversations)       │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-│                         │                                            │
-│                   Langfuse callbacks                                 │
-│                         ▼                                            │
-│                ┌─────────────────┐                                   │
-│                │ Langfuse Cloud  │                                   │
-│                └─────────────────┘                                   │
-└──────────────────────────────────────────────────────────────────────┘
+### System Overview
 
-Client: Jupyter Notebook
-  1. boto3 InitiateAuth → Cognito JWT (auth demo)
-  2. boto3 invoke_agent_runtime → AgentCore Runtime
-  3. Receive SSE stream via StreamingBody
-```
+![System Architecture](docs/diagrams/system-architecture.png)
+
+### ReAct Agent Flow
+
+![ReAct Agent Flow](docs/diagrams/react-agent-flow.png)
+
+> Diagrams source: [`docs/diagrams/system-architecture.drawio`](docs/diagrams/system-architecture.drawio)
 
 ---
 
