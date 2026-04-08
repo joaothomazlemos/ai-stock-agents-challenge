@@ -15,8 +15,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY src/ src/
 
+COPY README.md /app/README.md
+
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable
+
+
 
 # ──────────────────────────────────────────────
 # Stage 2: Runtime — slim image for AgentCore
