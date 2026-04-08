@@ -103,6 +103,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.notebook
 .venv
 env/
 venv/
@@ -192,3 +193,8 @@ data/faiss_index/
 
 # Directory environment variables
 .envrc
+
+# AI agent config (local-only)
+.cursor/
+.claude/
+.github/instructions/
