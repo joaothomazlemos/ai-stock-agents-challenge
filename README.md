@@ -103,7 +103,7 @@ Edit `terraform.tfvars` with your values:
 | --- | --- | --- |
 | `aws_region` | Yes | AWS region with Bedrock + AgentCore support (default: `us-east-1`) |
 | `project_name` | Yes | Prefix for all resource names (default: `ai-stock-agent`) |
-| `container_image_tag` | Yes | Tag you pushed to ECR (e.g. `latest`, `v4`) |
+| `container_image_tag` | Yes | Tag for your Docker image (default: `latest`) |
 | `bedrock_model_id` | Yes | Inference profile ID — run `aws bedrock list-inference-profiles` |
 | `embedding_model_id` | Yes | Default: `amazon.titan-embed-text-v2:0` |
 | `embedding_dims` | Yes | Default: `512` |
@@ -113,20 +113,14 @@ Edit `terraform.tfvars` with your values:
 
 > **Note:** `terraform.tfvars` is gitignored — your secrets stay out of version control.
 
-### Step 3: Initialize and Deploy Infrastructure
+### Step 3: Create ECR Repository
+
+The AgentCore runtime needs a container image to exist in ECR before it can be created. First, provision only the ECR repository:
 
 ```bash
+cd terraform
 terraform init
-terraform plan
-terraform apply
-```
-
-This provisions: Cognito User Pool, ECR Repository, IAM Roles, AgentCore Runtime, Endpoint, Memory, and Gateway. The endpoint version is auto-synced to the latest runtime version on every apply.
-
-Save the outputs — you'll need them for Docker push and the notebook:
-
-```bash
-terraform output
+terraform apply -target=aws_ecr_repository.this -target=aws_ecr_lifecycle_policy.this
 ```
 
 ### Step 4: Build and Push Docker Image
@@ -141,12 +135,26 @@ aws ecr get-login-password --region us-east-1 | \
 
 # Tag and push to ECR
 ECR_REPO=$(terraform -chdir=terraform output -raw ecr_repository_url) make push
-
-# Update container_image_tag in terraform.tfvars if using a new tag, then re-apply
-cd terraform && terraform apply
 ```
 
-### Step 5: Create a Cognito Test User
+### Step 5: Deploy Full Infrastructure
+
+Now that the image exists in ECR, deploy everything else:
+
+```bash
+cd terraform
+terraform apply
+```
+
+This provisions: Cognito User Pool, IAM Roles, AgentCore Runtime, Endpoint, Memory, and Gateway. The endpoint version is auto-synced to the latest runtime version on every apply.
+
+Save the outputs — you'll need them for the notebook:
+
+```bash
+terraform output
+```
+
+### Step 6: Create a Cognito Test User
 
 ```bash
 aws cognito-idp admin-create-user --user-pool-id $(terraform -chdir=terraform output -raw cognito_user_pool_id) --username testuser@example.com --temporary-password 'TempPass1!' --region us-east-1 --message-action SUPPRESS
@@ -154,7 +162,7 @@ aws cognito-idp admin-create-user --user-pool-id $(terraform -chdir=terraform ou
 aws cognito-idp admin-set-user-password --user-pool-id $(terraform -chdir=terraform output -raw cognito_user_pool_id) --username testuser@example.com --password 'securePass1' --region us-east-1 --permanent
 ```
 
-### Step 6: Verify Deployment
+### Step 7: Verify Deployment
 
 The AgentCore Runtime is invoked via the AWS SDK (not direct HTTP). Use Python:
 

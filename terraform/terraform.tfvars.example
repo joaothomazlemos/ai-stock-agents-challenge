@@ -7,7 +7,7 @@
 aws_region          = "us-east-1"
 project_name        = "ai-stock-agent"
 
-# Docker image tag pushed to ECR (update after each docker push)
+# Docker image tag pushed to ECR
 container_image_tag = "latest"
 
 # Bedrock model — must be an inference profile ID, not a raw model ID
