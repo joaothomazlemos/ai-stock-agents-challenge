@@ -44,7 +44,7 @@ Enable them in the [Bedrock Model Access console](https://console.aws.amazon.com
 
 ```bash
 # 1. Clone and install
-git clone <repo-url>
+git clone https://github.com/joaothomazlemos/ai-stock-agents-challenge.git
 cd ai-stock-agents-challenge
 make install
 
@@ -123,8 +123,13 @@ terraform apply -target=aws_ecr_repository.this -target=aws_ecr_lifecycle_policy
 
 ### Step 4: Build and Push Docker Image
 
+Run the following from the **project root** (not `terraform/`):
+
 ```bash
-# start your docker engine
+cd ..  # back to project root if you're still in terraform/
+
+# Make sure your Docker engine is running (e.g. Docker Desktop, colima start)
+
 # Build ARM64 image
 make build
 
@@ -154,6 +159,8 @@ terraform output
 ```
 
 ### Step 6: Create a Cognito Test User
+
+Run from the **project root**:
 
 ```bash
 aws cognito-idp admin-create-user --user-pool-id $(terraform -chdir=terraform output -raw cognito_user_pool_id) --username testuser@example.com --temporary-password 'TempPass1!' --region us-east-1 --message-action SUPPRESS
