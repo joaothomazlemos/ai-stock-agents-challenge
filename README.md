@@ -81,6 +81,8 @@ bash terraform/bootstrap.sh <your-tfstate-bucket-name>
 
 Then update the `bucket` field in `terraform/providers.tf` to match the name you chose.
 
+> **Tip:** If the AWS CLI opens a pager showing the output with `(END)` at the bottom, press `q` to exit. To disable the pager globally, run `export AWS_PAGER=""`.
+
 ### Step 2: Configure Terraform Variables
 
 ```bash
