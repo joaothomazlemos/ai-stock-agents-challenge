@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.14"
 
   backend "s3" {
-    bucket       = "jtl-exercise-tfstate"
+    bucket       = "<your-tfstate-bucket-name>" # Set to the bucket name from bootstrap.sh
     key          = "ai-stock-agent/terraform.tfstate"
     region       = "us-east-1"
     use_lockfile = true

@@ -72,10 +72,14 @@ curl -N -X POST http://localhost:8080/invocations \
 
 ### Step 1: Bootstrap Terraform State (first time only)
 
+S3 bucket names are globally unique. Pick a name for your tfstate bucket and run:
+
 ```bash
 # From the project root — creates the S3 bucket for Terraform remote state
-bash terraform/bootstrap.sh
+bash terraform/bootstrap.sh <your-tfstate-bucket-name>
 ```
+
+Then update the `bucket` field in `terraform/providers.tf` to match the name you chose.
 
 ### Step 2: Configure Terraform Variables
 
@@ -352,18 +356,20 @@ cd terraform
 terraform destroy
 
 # 2. Delete the S3 bucket used for Terraform remote state
-aws s3 rm s3://jtl-exercise-tfstate --recursive
-aws s3api delete-bucket --bucket jtl-exercise-tfstate --region us-east-1
+#    Replace <your-tfstate-bucket-name> with the name you used in bootstrap.sh
+aws s3 rm s3://<your-tfstate-bucket-name> --recursive
+aws s3api delete-bucket --bucket <your-tfstate-bucket-name> --region us-east-1
 ```
 
 > **Note:** The S3 bucket has versioning enabled. If `aws s3 rm` doesn't fully empty it, delete all object versions first:
 >
 > ```bash
-> aws s3api list-object-versions --bucket jtl-exercise-tfstate --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json | \
->   aws s3api delete-objects --bucket jtl-exercise-tfstate --delete file:///dev/stdin
-> aws s3api list-object-versions --bucket jtl-exercise-tfstate --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' --output json | \
->   aws s3api delete-objects --bucket jtl-exercise-tfstate --delete file:///dev/stdin
-> aws s3api delete-bucket --bucket jtl-exercise-tfstate --region us-east-1
+> BUCKET=<your-tfstate-bucket-name>
+> aws s3api list-object-versions --bucket $BUCKET --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json | \
+>   aws s3api delete-objects --bucket $BUCKET --delete file:///dev/stdin
+> aws s3api list-object-versions --bucket $BUCKET --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' --output json | \
+>   aws s3api delete-objects --bucket $BUCKET --delete file:///dev/stdin
+> aws s3api delete-bucket --bucket $BUCKET --region us-east-1
 > ```
 
 ---

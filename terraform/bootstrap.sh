@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BUCKET="jtl-exercise-tfstate"
-REGION="us-east-1"
+BUCKET="${1:?Usage: bash bootstrap.sh <globally-unique-bucket-name>}"
+REGION="${2:-us-east-1}"
 
-echo "Creating S3 bucket for Terraform state: ${BUCKET}"
+echo "Creating S3 bucket for Terraform state: ${BUCKET} (region: ${REGION})"
 
 if aws s3api head-bucket --bucket "${BUCKET}" 2>/dev/null; then
   echo "Bucket already exists, skipping creation."
@@ -31,4 +31,5 @@ else
   echo "Bucket created with versioning, encryption, and public access block."
 fi
 
-echo "Run 'terraform init' to initialize the backend."
+echo "Now update terraform/providers.tf backend \"s3\" block with bucket = \"${BUCKET}\""
+echo "Then run 'terraform init' to initialize the backend."
