@@ -1,6 +1,6 @@
 # Knowledge base source documents
 
-PDFs required by the take-home assignment for document retrieval (RAG).
+PDF documents used as the RAG knowledge base.
 
 ## Files
 

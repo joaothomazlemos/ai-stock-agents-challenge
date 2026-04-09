@@ -344,4 +344,4 @@ RUNTIME_ENDPOINT_ARN=<arn> pytest -m e2e -v
 
 ## License
 
-This project is part of a take-home assignment and is not licensed for redistribution.
+This project is licensed under the [MIT License](LICENSE).

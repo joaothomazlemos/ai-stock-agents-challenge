@@ -136,9 +136,12 @@ qdrant_storage/*
 # PDF documents
 pdf_documents/
 *.pdf
-# Assignment + knowledge base PDFs (tracked)
+# Knowledge base PDFs (tracked)
 !docs/knowledgebase-files/*.pdf
-!docs/AI-Team-Lead-Take-Home-Assignment.pdf
+
+# Internal planning docs (local-only)
+docs/PRD-ai-stock-agent.md
+docs/specs/SPEC-ai-stock-agent.md
 
 # File uploads (temp)
 uploads/
