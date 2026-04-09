@@ -201,3 +201,4 @@ data/faiss_index/
 .cursor/
 .claude/
 .github/instructions/
+CLAUDE.md
