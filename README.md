@@ -111,8 +111,6 @@ Edit `terraform.tfvars` with your values:
 | `langfuse_secret_key` | No | Same as above (leave empty to disable tracing) |
 | `langfuse_host` | No | Default: `https://cloud.langfuse.com` |
 
-> **Note:** `terraform.tfvars` is gitignored — your secrets stay out of version control.
-
 ### Step 3: Create ECR Repository
 
 The AgentCore runtime needs a container image to exist in ECR before it can be created. First, provision only the ECR repository:
@@ -126,6 +124,7 @@ terraform apply -target=aws_ecr_repository.this -target=aws_ecr_lifecycle_policy
 ### Step 4: Build and Push Docker Image
 
 ```bash
+# start your docker engine
 # Build ARM64 image
 make build
 
@@ -167,7 +166,7 @@ aws cognito-idp admin-set-user-password --user-pool-id $(terraform -chdir=terraf
 The AgentCore Runtime is invoked via the AWS SDK (not direct HTTP). Use Python:
 
 ```python
-import boto3, json
+import boto3, json, uuid
 
 # Split the endpoint ARN into runtime ARN + qualifier
 endpoint_arn = "<runtime_endpoint_arn from terraform output>"
@@ -177,7 +176,7 @@ client = boto3.client("bedrock-agentcore", region_name="us-east-1")
 response = client.invoke_agent_runtime(
     agentRuntimeArn=runtime_arn,
     qualifier=qualifier,
-    runtimeSessionId="test-session",
+    runtimeSessionId=str(uuid.uuid4()),
     contentType="application/json",
     accept="text/event-stream",
     payload=json.dumps({"prompt": "What is the stock price for Amazon right now?", "stream": True}).encode(),
@@ -226,8 +225,8 @@ terraform -chdir=terraform output
 | `RUNTIME_ENDPOINT_ARN` | `terraform -chdir=terraform output -raw runtime_endpoint_arn` |
 | `COGNITO_USER_POOL_ID` | `terraform -chdir=terraform output -raw cognito_user_pool_id` |
 | `COGNITO_CLIENT_ID` | `terraform -chdir=terraform output -raw cognito_client_id` |
-| `COGNITO_USERNAME` | The Cognito user you created in Step 5 |
-| `COGNITO_PASSWORD` | The permanent password you set in Step 5 |
+| `COGNITO_USERNAME` | The Cognito user you created in Step 6 |
+| `COGNITO_PASSWORD` | The permanent password you set in Step 6 |
 
 ### 3. Launch the notebook
 
