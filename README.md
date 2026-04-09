@@ -342,6 +342,32 @@ RUNTIME_ENDPOINT_ARN=<arn> pytest -m e2e -v
 
 ---
 
+## Teardown
+
+To destroy all AWS resources when you're done:
+
+```bash
+# 1. Destroy all Terraform-managed resources (AgentCore, Cognito, ECR, IAM, etc.)
+cd terraform
+terraform destroy
+
+# 2. Delete the S3 bucket used for Terraform remote state
+aws s3 rm s3://jtl-exercise-tfstate --recursive
+aws s3api delete-bucket --bucket jtl-exercise-tfstate --region us-east-1
+```
+
+> **Note:** The S3 bucket has versioning enabled. If `aws s3 rm` doesn't fully empty it, delete all object versions first:
+>
+> ```bash
+> aws s3api list-object-versions --bucket jtl-exercise-tfstate --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json | \
+>   aws s3api delete-objects --bucket jtl-exercise-tfstate --delete file:///dev/stdin
+> aws s3api list-object-versions --bucket jtl-exercise-tfstate --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' --output json | \
+>   aws s3api delete-objects --bucket jtl-exercise-tfstate --delete file:///dev/stdin
+> aws s3api delete-bucket --bucket jtl-exercise-tfstate --region us-east-1
+> ```
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
