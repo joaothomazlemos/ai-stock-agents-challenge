@@ -79,7 +79,14 @@ S3 bucket names are globally unique. Pick a name for your tfstate bucket and run
 bash terraform/bootstrap.sh <your-tfstate-bucket-name>
 ```
 
-Then update the `bucket` field in `terraform/providers.tf` to match the name you chose.
+Then open `terraform/providers.tf` and replace the placeholder in the backend block with your bucket name:
+
+```hcl
+backend "s3" {
+  bucket = "<your-tfstate-bucket-name>"  # ← replace this
+  ...
+}
+```
 
 > **Tip:** If the AWS CLI opens a pager showing the output with `(END)` at the bottom, press `q` to exit. To disable the pager globally, run `export AWS_PAGER=""`.
 
